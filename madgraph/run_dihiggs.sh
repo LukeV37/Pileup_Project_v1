@@ -1,6 +1,6 @@
 #!/bin/bash
 cd output
-../../software/MadGraph5-v3.5.5/bin/mg5_aMC ../process_cards/DiHiggs_proc_card.dat
+../../submodules/MadGraph5-v3.5.5/bin/mg5_aMC ../process_cards/DiHiggs_proc_card.dat
 
 # Edit Run Card
 Beam_Energy=7000.0
