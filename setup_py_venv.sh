@@ -1,13 +1,13 @@
 #!/bin/bash
 WORK_DIR=$(pwd)
-cd software
-python3 -m venv torch
-if test -f ./torch/bin/activate; then
+if [ ! -d ./submodules/torch/bin ]; then
+    cd submodules
+    python3 -m venv torch
     cd torch
     source ./bin/activate
     pip install --upgrade pip
     pip install -r pip_requirements.txt
+    cd $WORK_DIR
 else
-    echo "Virtual Environment could not be created..."
+    source ./submodules/torch/bin/activate
 fi
-cd $WORK_DIR
