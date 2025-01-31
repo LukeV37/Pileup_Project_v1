@@ -1,6 +1,5 @@
 #!/bin/bash
-cd software/install_scripts
-./install_hepmc.sh
+cd submodules/install_scripts
 ./install_fastjet.sh
 ./install_pythia.sh
 #./install_madgraph.sh
