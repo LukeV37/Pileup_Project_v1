@@ -1,15 +1,15 @@
 [submodule "submodules/MadGraph5-v3.5.5"]
-	path = submodules/MadGraph5-v3.5.5
-	url = https://github.com/mg5amcnlo/mg5amcnlo.git
-	branch = 3.5.5
+    path = submodules/MadGraph5-v3.5.5
+    url = https://github.com/mg5amcnlo/mg5amcnlo.git
+    branch = 3.5.5
     ignore=dirty
 [submodule "submodules/Pythia-8.312"]
-	path = submodules/Pythia-8.312
-	url = https://gitlab.com/Pythia8/releases.git
-	branch = pythia8312
+    path = submodules/Pythia-8.312
+    url = https://gitlab.com/Pythia8/releases.git
+    branch = pythia8312
     ignore=dirty
-[submodule "submodules/Fastjet-3.4.2"]
-	path = submodules/FastJet-3.4.2/
-	url = https://gitlab.com/fastjet/fastjet.git
-	branch = fastjet-3.4.2
+[submodule "submodules/FastJet-3.4.2"]
+    path = submodules/FastJet-3.4.2
+    url = https://gitlab.com/fastjet/fastjet.git
+    branch = fastjet-3.4.2
     ignore=dirty
