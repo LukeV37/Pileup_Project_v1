@@ -16,5 +16,5 @@
 [submodule "submodules/yaml-cpp"]
     path = submodules/yaml-cpp
     url = https://github.com/jbeder/yaml-cpp.git
-    branch = yaml-cpp-0.7.0
+    branch = yaml-cpp-0.6.3
     ignore=dirty
