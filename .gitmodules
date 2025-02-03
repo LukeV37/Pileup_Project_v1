@@ -14,7 +14,7 @@
     branch = fastjet-3.4.2
     ignore=dirty
 [submodule "submodules/yaml-cpp"]
-	path = submodules/yaml-cpp
-	url = https://github.com/jbeder/yaml-cpp.git
+    path = submodules/yaml-cpp
+    url = https://github.com/jbeder/yaml-cpp.git
     branch = yaml-cpp-0.7.0
     ignore=dirty
