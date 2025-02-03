@@ -8,9 +8,10 @@ import sys
 import torch
 import torch.nn.functional as F
 
-in_sample = "../pythia/output/dataset_diHiggs_mu20_NumEvents1k_MinJetpT25.root" # e.g. ../pythia/output/<file>.root
-out_sample = "data/test.pkl" # e.g. data/<file>.pkl
-out_dir = "plots/test" # e.g plots/<Dir Name>
+run_type = str(sys.argv[1]) # Efrac of Mfrac
+in_sample = str(sys.argv[2]) # e.g. ../pythia/output/<file>.root
+out_sample = str(sys.argv[3]) # e.g. data/<file>.pkl
+out_dir = str(sys.argv[4]) # e.g plots/<Dir Name>
 
 print("Loading Sample into memory...")
 with uproot.open(in_sample+":fastjet") as f:

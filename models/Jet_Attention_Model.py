@@ -18,10 +18,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-Epochs = 10
-in_sample = "data/test.pkl"
-out_file = "results/test.torch"
-out_path = "plots/train"
+Epochs = int(sys.argv[1])
+in_sample = str(sys.argv[2])
+out_file = str(sys.argv[3])
+out_path = str(sys.argv[4])
 
 print("Loading Data into memory...")
 data = pickle.load( open( in_sample , "rb" ) )
@@ -357,7 +357,7 @@ def roc(y_true, y_pred):
     sig_eff = []
     fake_rate = []
 
-    thresholds = np.linspace(0,0.9,100)
+    thresholds = np.linspace(0,0.97,100)
 
     for threshold in thresholds:
         sig_eff.append(((y_pred[sig] > threshold).sum() / y_true[sig].shape[0]))
