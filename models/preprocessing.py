@@ -8,10 +8,9 @@ import sys
 import torch
 import torch.nn.functional as F
 
-run_type = str(sys.argv[1]) # Efrac of Mfrac
-in_sample = str(sys.argv[2]) # e.g. ../pythia/output/<file>.root
-out_sample = str(sys.argv[3]) # e.g. data/<file>.pkl
-out_dir = str(sys.argv[4]) # e.g plots/<Dir Name>
+in_sample = str(sys.argv[1]) # e.g. ../pythia/output/<file>.root
+out_sample = str(sys.argv[2]) # e.g. data/<file>.pkl
+out_dir = str(sys.argv[3]) # e.g plots/<Dir Name>
 
 print("Loading Sample into memory...")
 with uproot.open(in_sample+":fastjet") as f:
