@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.colors as mcolors
 
-from sklearn.metrics import mean_absolute_error, root_mean_squared_error
+from sklearn.metrics import mean_absolute_error, root_mean_squared_error, r2_score
 from sklearn.metrics import roc_curve, roc_auc_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -143,10 +143,12 @@ jet_pred, trk_pred = model(X_train[Event_no][Jets],X_train[Event_no][Trk_Jet],X_
 jet_loss_fn = nn.MSELoss()
 trk_loss_fn = nn.BCELoss()
 
-print(jet_loss_fn(jet_pred,y_train[Event_no][0]))
-print(trk_loss_fn(trk_pred,y_train[Event_no][1]))
+print("Testing MSE Loss for jets:", jet_loss_fn(jet_pred,y_train[Event_no][0]))
+print("Testing BCE Loss for trks:", trk_loss_fn(trk_pred,y_train[Event_no][1]))
+print()
 
 print("Trainable Parameters :", sum(p.numel() for p in model.parameters() if p.requires_grad))
+print()
 
 ### Define Training Loop
 def train(model, optimizer, X_train, y_train, X_val, y_val, epochs=40):
@@ -272,15 +274,19 @@ for i in range(num_test):
         
 cumulative_loss_test = cumulative_loss_test / num_test
 
+print()
 print("Train Loss:\t", combined_history[-1][0])
 print("Val Loss:\t", combined_history[-1][1])
 print("Test Loss:\t", cumulative_loss_test)
 print()
+print("Efrac R2:\t", r2_score(Efrac_true_labels, Efrac_pred_labels))
 print("Efrac MAE:\t", mean_absolute_error(Efrac_true_labels, Efrac_pred_labels))
 print("Efrac RMSE:\t", root_mean_squared_error(Efrac_true_labels, Efrac_pred_labels))
 print()
+print("Mfrac R2:\t", r2_score(Mfrac_true_labels, Mfrac_pred_labels))
 print("Mfrac MAE:\t", mean_absolute_error(Mfrac_true_labels, Mfrac_pred_labels))
 print("Mfrac RMSE:\t", root_mean_squared_error(Mfrac_true_labels, Mfrac_pred_labels))
+print()
 
 plt.figure()
 plt.hist(Efrac_true_labels,histtype='step',color='r',label='True Efrac Distribution',bins=50,range=(0,1))
@@ -401,5 +407,6 @@ ax2.set_xlim(0.5,1)
 plt.savefig(out_path+"/Trk_ATLAS_ROC.png")
 #plt.show()
 
-print("\tBinary Accuracy: ", BA1, "\tF1 Score: ", f11)
-print("")
+print("Binary Accuracy: ", BA1, "\tF1 Score: ", f11)
+print()
+print("Done!")
