@@ -8,18 +8,10 @@ import sys
 import torch
 import torch.nn.functional as F
 
-run_type = str(sys.argv[1]) # Efrac of Mfrac
-in_sample = str(sys.argv[2]) # e.g. ../pythia/output/<file>.root
-out_sample = str(sys.argv[3]) # e.g. data/<file>.pkl
-out_dir = str(sys.argv[4]) # e.g plots/<Dir Name>
+in_sample = str(sys.argv[1]) # e.g. ../pythia/output/<file>.root
+out_sample = str(sys.argv[2]) # e.g. data/<file>.pkl
+out_dir = str(sys.argv[3]) # e.g plots/<Dir Name>
 
-# Uproot opens a ROOT file. There is a TTree (data structure) inside named fastjet.
-# The fastjet TTree has branches that can be accessed by strings. E.g. "jet_pt"
-# Uproot reads the branch and converts the branch to an awkward array stored in memory
-# An awkward array is a jagged numpy-like array specifically developed for High Energy Physics purposes
-# Awkward arrays are great to perform vectorized operations!
-# However loading the entire dataset into memory can cause issues with hardware limitations...
-# Loading 100k mu=60 events into memory takes 120GB of RAM!
 print("Loading Sample into memory...")
 with uproot.open(in_sample+":fastjet") as f:
     jet_pt = f["jet_pt"].array()
@@ -35,12 +27,11 @@ with uproot.open(in_sample+":fastjet") as f:
     trk_d0 = f["trk_jet_d0"].array()
     trk_z0 = f["trk_jet_z0"].array()
     trk_label = f["trk_jet_label"].array()
-    jet_trk_IDX = f["jet_track_index"].array()
-    jet_pufr_truth = f["jet_pufr_truth"].array()
-    jet_label = f["jet_true_"+run_type].array()
+    jet_Efrac = f["jet_true_Efrac"].array()
+    jet_Mfrac = f["jet_true_Mfrac"].array()
 
 print("Joining jet features...")
-jet_feat_list = [jet_pt,jet_eta,jet_phi,jet_m,jet_label]
+jet_feat_list = [jet_pt,jet_eta,jet_phi,jet_m,jet_Efrac,jet_Mfrac]
 jet_feat_list = [x[:,:,np.newaxis] for x in jet_feat_list]
 jet_feats = ak.concatenate(jet_feat_list, axis=2)
 print("\tNum Events: ", len(jet_feats))
@@ -81,9 +72,9 @@ selected_jets = selected_jets[trackless_jets_mask]
 selected_tracks = selected_tracks[trackless_jets_mask]
 
 print("Normalizing Jet Features...")
-num_jet_feats = len(selected_jets[0][0])-1
+num_jet_feats = len(selected_jets[0][0])-2
 
-sig = selected_jets[:,:,-1]>0.5
+sig = selected_jets[:,:,-2]>0.5
 bkg = ~sig
 
 var_list = ['pT','Eta','Phi','Mass']
@@ -96,7 +87,7 @@ for i in range(num_jet_feats):
     std = ak.std(feat)
     norm = (feat-mean)/std
     norm_list.append(norm)
-    
+
     fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10,5))
     mini=ak.mean(feat[sig])-2*ak.std(feat[sig])
     maxi=ak.mean(feat[sig])+2*ak.std(feat[sig])
@@ -116,15 +107,25 @@ for i in range(num_jet_feats):
     #print("STD Before: ", std, "\t\t STD After: ", ak.std(norm))
 
 plt.figure()
-plt.title("Jet Label")
+plt.title("Jet Efrac")
+plt.hist(ak.ravel(selected_jets[:,:,-2][sig]),histtype='step',label='HS',bins=30,range=(0,1))
+plt.hist(ak.ravel(selected_jets[:,:,-2][bkg]),histtype='step',label='PU',bins=30,range=(0,1))
+plt.yscale('log')
+plt.legend()
+plt.savefig(out_dir+"/Jet_Efrac.png")
+#plt.show()
+
+plt.figure()
+plt.title("Jet Mfrac")
 plt.hist(ak.ravel(selected_jets[:,:,-1][sig]),histtype='step',label='HS',bins=30,range=(0,1))
 plt.hist(ak.ravel(selected_jets[:,:,-1][bkg]),histtype='step',label='PU',bins=30,range=(0,1))
 plt.yscale('log')
 plt.legend()
-plt.savefig(out_dir+"/Jet_Label.png")
-#plt.show()    
-    
+plt.savefig(out_dir+"/Jet_Mfrac.png")
+#plt.show()
+
 # Append Labels
+norm_list.append(selected_jets[:,:,-2])
 norm_list.append(selected_jets[:,:,-1])
 Norm_list = [x[:,:,np.newaxis] for x in norm_list]
 selected_jets = ak.concatenate(Norm_list, axis=2)
@@ -165,10 +166,20 @@ for i in range(num_trk_feats):
     #plt.show()
     #print("Mean Before: ", mean, "\nMean After: ", ak.mean(norm))
     #print("STD Before: ", std, "\nSTD After: ", ak.std(norm))
+
+plt.figure()
+plt.title("Trk Vertex Label")
+plt.hist(ak.ravel(selected_tracks[:,:,:,-1][sig]),histtype='step',label='HS',bins=41,range=(-1,40))
+plt.hist(ak.ravel(selected_tracks[:,:,:,-1][bkg]),histtype='step',label='PU',bins=41,range=(-1,40))
+plt.yscale('log')
+plt.legend()
+plt.savefig(out_dir+"/Trk_Label.png")
+plt.show()
     
 # Add label
-norm_list.append(selected_tracks[:,:,:,-1])
-    
+isPU_label = ak.values_astype(selected_tracks[:,:,:,-1]!=-1,int)
+norm_list.append(isPU_label)
+
 # Combine features
 Norm_list = [x[:,:,:,np.newaxis] for x in norm_list]
 selected_tracks = ak.concatenate(Norm_list, axis=3)
@@ -187,16 +198,16 @@ for event in range(num_events):
     trk_list = []
     num_jets = len(selected_jets[event])
     for jet in range(num_jets):
-        tracks = torch.Tensor(selected_tracks[event][jet,:])        
-        pad = (0,0,0,max_num_trks-len(tracks))        
+        tracks = torch.Tensor(selected_tracks[event][jet,:])
+        pad = (0,0,0,max_num_trks-len(tracks))
         tracks = F.pad(tracks,pad)
         trk_list.append(torch.unsqueeze(tracks,dim=0))
     tracks = torch.cat(trk_list,dim=0)
-    # Append all data but don't include label 0:-1!
-    flat_tracks = torch.Tensor(all_tracks[event][:,0:-1])
-    Event_Data.append((jets[:,0:-1],tracks[:,:,0:-1],flat_tracks))
-    #Event_Labels.append((jets[:,-1].reshape(-1,1),tracks[:,:,-1].reshape(-1,1)))
-    Event_Labels.append(jets[:,-1].reshape(-1,1))
+    # Append all data *as torch tensors* to lists
+    flat_tracks_data = torch.Tensor(all_tracks[event][:,0:-1])
+    flat_tracks_label = torch.Tensor(all_tracks[event][:,-1])
+    Event_Data.append((jets[:,0:-2],tracks[:,:,0:-1],flat_tracks_data))
+    Event_Labels.append((jets[:,-2:],flat_tracks_label.reshape(-1,1)))
 print("\tProcessing: ", num_events, " / ", num_events)
 
 print("Split dataset into train, val, test...")
